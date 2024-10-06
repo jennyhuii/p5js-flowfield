@@ -1,32 +1,72 @@
-var z = 0;
-var noiseVals = [];
+let num = 2000;
+let noiseScale = 300,
+  noiseStrength = 1;
+let particles = [num];
 
 function setup() {
   createCanvas(windowWidth, windowHeight);
-  angleMode(DEGREES);
-  stroke(255);
-
-  for (var x = 0; x < width; x += 10) {
-    noiseVals[x] = [];
-    for (var y = 0; y < height; y += 10) {
-      noiseVals[x][y] = 0;
-    }
+  for (let i = 0; i < num; i++) {
+    let loc = createVector(random(width), random(height), 2);
+    let angle = 0; 
+    let dir = createVector(cos(angle), sin(angle));
+    let speed = random(0.25, 1.5); 
+    particles[i] = new Particle(loc, dir, speed);
   }
 }
 
+function windowResized() {
+  resizeCanvas(windowWidth, windowHeight);
+}
+
 function draw() {
-  background(0);
-  for (var x = 0; x < width; x += 10) {
-    for (var y = 0; y < height; y += 10) {
-      noiseVals[x][y] = 360 * noise(0.01 * x, 0.01 * y, z);
+  fill(0, 10);
+  noStroke();
+  rect(0, 0, width, height);
+  for (let i = 0; i < particles.length; i++) {
+    particles[i].run();
+  }
+}
 
-      push();
-      translate(x, y);
-      rotate(noiseVals[x][y]);
-      line(0, 0, 10, 10);
-
-      pop();
+class Particle {
+  constructor(_loc, _dir, _speed) {
+    this.loc = _loc;
+    this.dir = _dir;
+    this.speed = _speed;
+  }
+  run() {
+    this.move();
+    this.checkEdges();
+    this.update();
+  }
+  move() {
+    let angle =
+      noise(
+        this.loc.x / noiseScale,
+        this.loc.y / noiseScale,
+        frameCount / noiseScale
+      ) *
+      TWO_PI *
+      noiseStrength; 
+    this.dir.x = cos(angle);
+    this.dir.y = sin(angle);
+    let vel = this.dir.copy();
+    let d = 1; 
+    vel.mult(this.speed * d); 
+    this.loc.add(vel); 
+  }
+  checkEdges() {
+    if (
+      this.loc.x < 0 ||
+      this.loc.x > width ||
+      this.loc.y < 0 ||
+      this.loc.y > height
+    ) {
+      this.loc.x = random(width * 1.5);
+      this.loc.y = random(height);
     }
   }
-  z += 0.005;
+  update() {
+    fill("#5946b2");
+    circle(this.loc.x, this.loc.y, this.loc.z);
+  }
 }
